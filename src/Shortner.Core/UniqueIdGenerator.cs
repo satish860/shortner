@@ -1,25 +1,25 @@
-﻿using System;
+﻿using StackExchange.Redis;
+using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 
 namespace Shortner.Core
 {
-    public static class UniqueIdGenerator
+    public class UniqueIdGenerator : IUniqueIdGenerator
     {
-        public static int MinValue { get; set; }
-        public static int MaxValue { get; set; }
+        private readonly IDatabase database;
 
-        private static int CurrentValue;
-
-        public static int GetNext()
+        public UniqueIdGenerator(IDatabase database)
         {
-            return Interlocked.Increment(ref CurrentValue);
+            this.database = database;
+        }
+        public Task<long> GetNext()
+        {
+            return this.database.StringIncrementAsync("shortner");
         }
 
-        public static bool GetNextRange()
-        {
-            return true;
-        }
+
     }
 }

@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Shortner.Core;
+using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +20,13 @@ namespace Shortner.Api
         {
             services.AddMvc();
             services.AddApiVersioning();
+            ConnectionMultiplexer redis = ConnectionMultiplexer.Connect("localhost");
+            services.AddTransient<IDatabase>((services) =>
+            {
+               return redis.GetDatabase();
+            });
+            services.AddTransient<IUniqueIdGenerator, UniqueIdGenerator>();
+            services.AddTransient<IUrlRepository, UrlRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

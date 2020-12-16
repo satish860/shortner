@@ -8,7 +8,9 @@ namespace Shortner.Core
 {
     public static class Base62Convertor 
     {
-        private static Base62Converter converter = new Base62Converter();
+        public static readonly string Alphabet = "abcdefghijklmnopqrstuvwxyz0123456789";
+        public static readonly long Base = Alphabet.Length;
+
         /// <summary>
         /// Generates the specified unique identifier.
         /// </summary>
@@ -16,15 +18,30 @@ namespace Shortner.Core
         /// <returns>Token for Url</returns>
         public static string Convert(long uniqueId)
         {
-            var encodedString = converter.Encode(uniqueId.ToString());
-            if(encodedString.Length <=7)
+            if (uniqueId == 0) return Alphabet[0].ToString();
+
+            var s = string.Empty;
+
+            while (uniqueId > 0)
             {
-                var remainingCount = 7 - encodedString.Length;
-                var zerosWithComma = string.Join(",",Enumerable.Repeat(0, remainingCount));
-                var zeros = zerosWithComma.Replace(",", "");
-                return encodedString + zeros;
+                int marker = (int)(uniqueId % Base);
+                s += Alphabet[marker];
+                uniqueId = uniqueId / Base;
             }
-            return encodedString;
+
+            return string.Join(string.Empty, s.Reverse());
+        }
+
+        public static int Decode(string s)
+        {
+            var i = 0;
+
+            //foreach (var c in s)
+            //{
+            //    i = (i * Base) + Alphabet.IndexOf(c);
+            //}
+
+            return i;
         }
     }
 }

@@ -11,10 +11,25 @@ namespace Shortner.Api.Controllers
     [Route("api/v{version:apiVersion}")]
     public class ShortnerController : ControllerBase
     {
-        [HttpPost("shortner")]
-        public IActionResult CreateShortUrl([FromBody]string url)
+        private readonly IUniqueIdGenerator uniqueIdGenerator;
+        private readonly IUrlRepository urlRepository;
+
+        public ShortnerController(IUniqueIdGenerator uniqueIdGenerator,IUrlRepository urlRepository)
         {
-            var shorturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}/{Base62Convertor.Convert(UniqueIdGenerator.GetNext())}";
+            this.uniqueIdGenerator = uniqueIdGenerator;
+            this.urlRepository = urlRepository;
+        }
+
+        [HttpPost("shortner")]
+        public async Task<IActionResult> CreateShortUrl([FromBody]string url)
+        {
+            var id = await this.uniqueIdGenerator.GetNext();
+            var shorturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}/{Base62Convertor.Convert(id)}";
+            var persistanceStatus = await this.urlRepository.SaveUrl(id, url);
+            if(persistanceStatus == false)
+            {
+                throw new Exception("Sorry!! We have some temporary down time. We request to retry after sometime"); 
+            }
             return Ok(shorturl);
         }
     }
