@@ -23,6 +23,11 @@ namespace Shortner.Api.Controllers
         [HttpPost("shortner")]
         public async Task<IActionResult> CreateShortUrl([FromBody]string url)
         {
+            bool isUri = Uri.IsWellFormedUriString(url, UriKind.Absolute);
+            if(!isUri)
+            {
+                return BadRequest("Not a valid URL!!! Come on you can do better");
+            }
             var id = await this.uniqueIdGenerator.GetNext();
             var shorturl = $"{this.Request.Scheme}://{this.Request.Host}{this.Request.PathBase}/{Base62Convertor.Convert(id)}";
             var persistanceStatus = await this.urlRepository.SaveUrl(id, url);
