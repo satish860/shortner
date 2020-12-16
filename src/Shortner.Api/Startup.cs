@@ -14,6 +14,7 @@ namespace Shortner.Api
 {
     public class Startup
     {
+
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
         public void ConfigureServices(IServiceCollection services)
@@ -30,7 +31,7 @@ namespace Shortner.Api
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,IUrlRepository urlRepository)
         {
             if (env.IsDevelopment())
             {
@@ -41,6 +42,14 @@ namespace Shortner.Api
 
             app.UseEndpoints(endpoints =>
             {
+                endpoints.MapGet("/{token}", async context =>
+                 {
+                     var token = context.Request.RouteValues["token"];
+                     var Id = Base62Convertor.Decode(token.ToString());
+                     var url = await urlRepository.GetUrl(Id);
+                     context.Response.Redirect(new Uri(url).AbsoluteUri,true);
+                     return;
+                 });
                 endpoints.MapDefaultControllerRoute();
             });
         }
