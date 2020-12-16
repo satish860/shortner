@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Shortner.Core;
@@ -14,6 +15,12 @@ namespace Shortner.Api
 {
     public class Startup
     {
+        private readonly IConfiguration configuration;
+
+        public Startup(IConfiguration configuration)
+        {
+            this.configuration = configuration;
+        }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         // For more information on how to configure your application, visit https://go.microsoft.com/fwlink/?LinkID=398940
@@ -21,13 +28,17 @@ namespace Shortner.Api
         {
             services.AddMvc();
             services.AddApiVersioning();
-            ConnectionMultiplexer redis = ConnectionMultiplexer.Connect("localhost");
+            var redisIp = configuration.GetValue<string>("Redis:Url");
+            var redisPort = configuration.GetValue<int?>("Redis:Port");
+            var port = redisPort ?? 6379;
+            ConnectionMultiplexer redis = ConnectionMultiplexer.Connect($"{redisIp}:{redisPort}");
             services.AddTransient<IDatabase>((services) =>
             {
                return redis.GetDatabase();
             });
             services.AddTransient<IUniqueIdGenerator, UniqueIdGenerator>();
             services.AddTransient<IUrlRepository, UrlRepository>();
+            
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
