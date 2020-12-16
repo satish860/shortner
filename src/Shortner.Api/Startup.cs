@@ -31,6 +31,7 @@ namespace Shortner.Api
             var redisIp = configuration.GetValue<string>("Redis:Url");
             var redisPort = configuration.GetValue<int?>("Redis:Port");
             var port = redisPort ?? 6379;
+            Console.WriteLine($"Found Redis in {redisIp} with Port {redisPort}");
             ConnectionMultiplexer redis = ConnectionMultiplexer.Connect($"{redisIp}:{redisPort}");
             services.AddTransient<IDatabase>((services) =>
             {

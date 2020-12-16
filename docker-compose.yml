@@ -1,0 +1,28 @@
+# Please refer https://aka.ms/HTTPSinContainer on how to setup an https developer certificate for your ASP .NET Core service.
+
+version: '3.4'
+
+services:
+  shortnerapi:
+    image: shortnerapi
+    networks:
+      - shortner
+    environment:
+      Redis__Url: redis
+      Redis__Port: 6379
+    build:
+      context: .
+      dockerfile: src/Shortner.Api/Dockerfile
+    ports:
+      - "4001:80"
+
+  redis:
+    image:  redis:alpine
+    networks:
+     - shortner
+    ports:
+      - "6379:6379"
+
+networks:
+  shortner:
+     
