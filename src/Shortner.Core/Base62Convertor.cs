@@ -32,14 +32,14 @@ namespace Shortner.Core
             return string.Join(string.Empty, s.Reverse());
         }
 
-        public static int Decode(string s)
+        public static int Decode(string token)
         {
             var i = 0;
 
-            //foreach (var c in s)
-            //{
-            //    i = (i * Base) + Alphabet.IndexOf(c);
-            //}
+            foreach (var c in token)
+            {
+                i = (i * (int)Base) + Alphabet.IndexOf(c);
+            }
 
             return i;
         }

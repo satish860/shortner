@@ -11,8 +11,8 @@ namespace Shortner.Tests
         [Fact]
         public void GenerateUniqueKeyTests()
         {
-            //var Id = Base62Convertor.Convert(1000000);
-            //Assert.Equal(10, Id.Length);
+            var token = Base62Convertor.Convert(1000000);
+            Assert.Equal(1000000, Base62Convertor.Decode(token));
         }
     }
 }
