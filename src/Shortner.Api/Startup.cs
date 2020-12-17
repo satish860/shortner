@@ -28,12 +28,12 @@ namespace Shortner.Api
         {
             services.AddMvc();
             services.AddApiVersioning();
-            var redisIp = configuration.GetValue<string>("Redis:Url");
+            var redisIp = configuration.GetValue<string>("Redis:Url")??"localhost";
             var redisPort = configuration.GetValue<int?>("Redis:Port");
             var port = redisPort ?? 6379;
             Console.WriteLine($"Found Redis in {redisIp} with Port {redisPort}");
-            ConnectionMultiplexer redis = ConnectionMultiplexer.Connect($"{redisIp}:{redisPort}");
-            services.AddTransient<IDatabase>((services) =>
+            ConnectionMultiplexer redis = ConnectionMultiplexer.Connect($"{redisIp}:{port}");
+            services.AddTransient((services) =>
             {
                return redis.GetDatabase();
             });
