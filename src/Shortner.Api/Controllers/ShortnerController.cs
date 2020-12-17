@@ -35,7 +35,7 @@ namespace Shortner.Api.Controllers
             {
                 throw new Exception("Sorry!! We have some temporary down time. We request to retry after sometime"); 
             }
-            return Ok(shorturl);
+            return Created(new Uri(shorturl),shorturl);
         }
     }
 }

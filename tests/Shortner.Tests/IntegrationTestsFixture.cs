@@ -21,8 +21,11 @@ namespace Shortner.Tests
                  .AddJsonFile("appsetings.json", true, true)
                  .AddEnvironmentVariables()
                  .Build();
+
             this.container = new Ductus.FluentDocker.Builders.Builder()
                 .UseContainer()
+                .ReuseIfExists()
+                .WithName("TestContainer")
                 .UseImage("redis:alpine")
                 .ExposePort(6379, 6379)
                 .WaitForPort("6379/tcp",3000)
