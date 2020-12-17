@@ -1,6 +1,8 @@
 
 <h1 align="center">Shortner</h1>
 
+![.NET Core](https://github.com/satish860/shortner/workflows/.NET%20Core/badge.svg?branch=master)
+
 
 ## Table of Contents <!-- omit in toc -->
 
