@@ -5,7 +5,8 @@ var configuration = Argument("configuration", "Release");
 var version = Argument("packageVersion", "0.0.1");
 var prerelease = Argument("prerelease", "");
 
-var buildNumber = 1;
+var buildNumber = EnvironmentVariable<int>("GITHUB_RUN_NUMBER",1);
+var IsCI = EnvironmentVariable<bool>("CI",false)
 var buildKey = "LOCAL-BUILD";
 var uniqueTag = DateTime.UtcNow.ToString("yyyy.MM.dd") + "." + buildNumber;
 
@@ -136,6 +137,7 @@ Task("BuildDockerImage")
 
 Task("PushImage")
     .IsDependentOn("BuildDockerImage")
+    .WithCriteria(() => IsCI)
     .Does(() =>
 {
     var finalImageName = $"docker.io/satish860/shortnerapi:{uniqueTag}";
@@ -148,7 +150,8 @@ Task("Default")
     .IsDependentOn("Restore")
     .IsDependentOn("Build")
     .IsDependentOn("RunUnitTests")
-    .IsDependentOn("BuildDockerImage");
+    .IsDependentOn("BuildDockerImage")
+    .IsDependentOn("PushImage")
 
 
 RunTarget(target);
