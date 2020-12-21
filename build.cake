@@ -1,7 +1,13 @@
+#addin "Cake.Docker"
+
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
 var version = Argument("packageVersion", "0.0.1");
 var prerelease = Argument("prerelease", "");
+
+var buildNumber = 1;
+var buildKey = "LOCAL-BUILD";
+var uniqueTag = DateTime.UtcNow.ToString("yyyy.MM.dd") + "." + buildNumber;
 
 class ProjectInformation
 {
@@ -97,29 +103,52 @@ Task("RunUnitTests")
         }
     });
 
-Task("Publish")
+Task("BuildDockerImage")
     .IsDependentOn("RunUnitTests")
     .Does(() =>
-    {
-        foreach(var project in projects.Where(p => !p.IsTestProject))
-        {
-            var publishSettings = new DotNetCorePublishSettings()
-                {
-                    Configuration = configuration,
-                    OutputDirectory = System.IO.Path.Combine("publish", project.Name),
-                    ArgumentCustomization = args => args.Append("--no-restore")
-                };
+{
+        var lastCommit = "unspecified";
+		using(var process = StartAndReturnProcess("git", new ProcessSettings
+		{
+			Arguments				= "log -1 --format=%H",
+			RedirectStandardError	= true,
+			RedirectStandardOutput	= true
+		}))
+		{
+			process.WaitForExit();
 
-            if (!string.IsNullOrEmpty(project.Runtime))
-            {
-                publishSettings.Runtime = project.Runtime;
-            }
+			if (process.GetExitCode() != 0)
+			{
+				var error = string.Join(Environment.NewLine, process.GetStandardError());
+				throw new InvalidOperationException(error);
+			}
 
-            DotNetCorePublish(project.FullPath, publishSettings);
-        }
-        
+			lastCommit = process.GetStandardOutput().FirstOrDefault();
+		}
+
+    
+    DockerComposeBuild(new DockerComposeBuildSettings{
+        BuildArg	= new[] { $"BUILD_NUMBER={buildNumber}", $"BUILD_KEY={buildKey}", $"GIT_COMMIT={lastCommit}", $"VERSION={uniqueTag}" },
+        ForceRm		= true,
+		Pull		= true
     });
+});
+
+Task("PushImage")
+    .IsDependentOn("BuildDockerImage")
+    .Does(() =>
+{
+    var finalImageName = $"docker.io/satish860/shortnerapi:{uniqueTag}";
+    DockerTag("shortnerapi:latest",finalImageName);
+    DockerPush(finalImageName);
+});
+
 Task("Default")
-    .IsDependentOn("RunUnitTests");
+    .IsDependentOn("Clean")
+    .IsDependentOn("Restore")
+    .IsDependentOn("Build")
+    .IsDependentOn("RunUnitTests")
+    .IsDependentOn("BuildDockerImage");
+
 
 RunTarget(target);

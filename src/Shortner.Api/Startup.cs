@@ -28,22 +28,22 @@ namespace Shortner.Api
         {
             services.AddMvc();
             services.AddApiVersioning();
-            var redisIp = configuration.GetValue<string>("Redis:Url")??"localhost";
+            var redisIp = configuration.GetValue<string>("Redis:Url") ?? "localhost";
             var redisPort = configuration.GetValue<int?>("Redis:Port");
             var port = redisPort ?? 6379;
             Console.WriteLine($"Found Redis in {redisIp} with Port {redisPort}");
-            ConnectionMultiplexer redis = ConnectionMultiplexer.Connect($"{redisIp}:{port}");
-            services.AddTransient((services) =>
-            {
-               return redis.GetDatabase();
+            services.AddSingleton<ConnectionMultiplexer>(ConnectionMultiplexer.Connect($"{redisIp}:{port}"));
+            services.AddTransient((services) => {
+                var redis = services.GetService<ConnectionMultiplexer>();
+                return redis.GetDatabase();
             });
             services.AddTransient<IUniqueIdGenerator, UniqueIdGenerator>();
             services.AddTransient<IUrlRepository, UrlRepository>();
-            
+
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env,IUrlRepository urlRepository)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IUrlRepository urlRepository)
         {
             if (env.IsDevelopment())
             {
@@ -52,16 +52,14 @@ namespace Shortner.Api
 
             app.UseRouting();
 
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapGet("/{token}", async context =>
-                 {
-                     var token = context.Request.RouteValues["token"];
-                     var Id = Base62Convertor.Decode(token.ToString());
-                     var url = await urlRepository.GetUrl(Id);
-                     context.Response.Redirect(new Uri(url).AbsoluteUri,true);
-                     return;
-                 });
+            app.UseEndpoints(endpoints => {
+                endpoints.MapGet("/{token}", async context => {
+                    var token = context.Request.RouteValues["token"];
+                    var Id = Base62Convertor.Decode(token.ToString());
+                    var url = await urlRepository.GetUrl(Id);
+                    context.Response.Redirect(new Uri(url).AbsoluteUri, true);
+                    return;
+                });
                 endpoints.MapDefaultControllerRoute();
             });
         }
