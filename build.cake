@@ -6,7 +6,7 @@ var version = Argument("packageVersion", "0.0.1");
 var prerelease = Argument("prerelease", "");
 
 var buildNumber = EnvironmentVariable<int>("GITHUB_RUN_NUMBER",1);
-var IsCI = EnvironmentVariable<bool>("CI",false)
+var IsCI = EnvironmentVariable<bool>("CI",false);
 var buildKey = "LOCAL-BUILD";
 var uniqueTag = DateTime.UtcNow.ToString("yyyy.MM.dd") + "." + buildNumber;
 
@@ -151,7 +151,7 @@ Task("Default")
     .IsDependentOn("Build")
     .IsDependentOn("RunUnitTests")
     .IsDependentOn("BuildDockerImage")
-    .IsDependentOn("PushImage")
+    .IsDependentOn("PushImage");
 
 
 RunTarget(target);
