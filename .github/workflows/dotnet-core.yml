@@ -22,9 +22,6 @@ jobs:
       with:
          username: ${{ secrets.DOCKERHUB_USERNAME }}
          password: ${{ secrets.DOCKERHUB_TOKEN }}
-    - name: Cake Action
-      uses: cake-build/cake-action@v1.2.0
-      env:
-        CAKE_NUGET_USEINPROCESSCLIENT: true
-      with:
-        cake-bootstrap: true
+    - name: Build Project
+      run: ./build.sh
+      shell: bash
