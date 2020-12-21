@@ -19,5 +19,7 @@ jobs:
         dotnet-version: 5.0.101
     - name: Cake Action
       uses: cake-build/cake-action@v1.2.0
+      env:
+        CAKE_NUGET_USEINPROCESSCLIENT: true
       with:
         cake-bootstrap: true
