@@ -23,5 +23,5 @@ jobs:
          username: ${{ secrets.DOCKERHUB_USERNAME }}
          password: ${{ secrets.DOCKERHUB_TOKEN }}
     - name:  Run Cake actions
-      uses: cake-build/cake-action@v1
+      run: dotnet tool restore && dotnet cake --verbosity=verbose --target=default
   
