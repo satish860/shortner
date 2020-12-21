@@ -1,4 +1,4 @@
-#addin "Cake.Docker"
+#addin "nuget:?package=Cake.Docker&version=0.11.0"
 
 var target = Argument("target", "Default");
 var configuration = Argument("configuration", "Release");
