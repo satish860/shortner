@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shortnerapi-1
+spec:
+  selector:
+    matchLabels:
+      app: shortnerapi-1
+  template:
+    metadata:
+      labels:
+        app: shortnerapi-1
+    spec:
+      containers:
+      - name: shortnerapi-1
+        image: satish860/shortnerapi
+        env:
+          - name: Redis__Url
+            value: redis
+          - name: Redis__Port
+            value: "6379"
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 80
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: redis
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: redis:alpine
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+        ports:
+        - containerPort: 6379
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis
+spec:
+  selector:
+    app: redis
+  ports:
+  - port: 6379
+    targetPort: 6379
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shortnerapi-1
+spec:
+  selector:
+    app: shortnerapi-1
+  ports:
+  - port: 9000
+    targetPort: 80
+  type: LoadBalancer
+
+
+
+
+
+
