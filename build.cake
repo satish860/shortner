@@ -143,6 +143,7 @@ Task("PushImage")
     var finalImageName = $"docker.io/satish860/shortnerapi:{uniqueTag}";
     DockerTag("shortnerapi:latest",finalImageName);
     DockerPush(finalImageName);
+    DockerTag("shortnerapi:latest","docker.io/satish860/shortnerapi:latest");
     DockerPush($"docker.io/satish860/shortnerapi:latest");
 });
 
