@@ -31,11 +31,10 @@ namespace Shortner.Api
             var redisIp = configuration.GetValue<string>("Redis:Url") ?? "localhost";
             var redisPort = configuration.GetValue<int?>("Redis:Port");
             var port = redisPort ?? 6379;
-            Console.WriteLine($"Found Redis in {redisIp} with Port {redisPort}");
-            services.AddSingleton<ConnectionMultiplexer>(ConnectionMultiplexer.Connect($"{redisIp}:{port}"));
+            Console.WriteLine($"Redis Configuration provided by app is {redisIp} with Port {redisPort}");
             services.AddTransient((services) => {
-                var redis = services.GetService<ConnectionMultiplexer>();
-                return redis.GetDatabase();
+                RedisConnection.Connect(redisIp, port);
+                return RedisConnection.GetDatabase();
             });
             services.AddTransient<IUniqueIdGenerator, UniqueIdGenerator>();
             services.AddTransient<IUrlRepository, UrlRepository>();
