@@ -1,8 +1,10 @@
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Shortner.Core;
 using StackExchange.Redis;
@@ -38,6 +40,8 @@ namespace Shortner.Api
             });
             services.AddTransient<IUniqueIdGenerator, UniqueIdGenerator>();
             services.AddTransient<IUrlRepository, UrlRepository>();
+            services.AddHealthChecks()
+                .AddRedis($"{redisIp}:{port}", "Redis", HealthStatus.Unhealthy, new[] { "ready" });
 
         }
 
@@ -52,6 +56,12 @@ namespace Shortner.Api
             app.UseRouting();
 
             app.UseEndpoints(endpoints => {
+                endpoints.MapHealthChecks("/hc", new HealthCheckOptions {
+                    Predicate = check => ! check.Tags.Contains("ready")
+                });
+                endpoints.MapHealthChecks("/rd", new HealthCheckOptions {
+                    Predicate = check => check.Tags.Contains("ready")
+                });
                 endpoints.MapGet("/{token}", async context => {
                     var token = context.Request.RouteValues["token"];
                     var Id = Base62Convertor.Decode(token.ToString());
