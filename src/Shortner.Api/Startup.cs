@@ -6,11 +6,14 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using Shortner.Api.HealthChecks;
 using Shortner.Core;
 using StackExchange.Redis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Mime;
+using System.Text.Json;
 using System.Threading.Tasks;
 
 namespace Shortner.Api
@@ -57,10 +60,13 @@ namespace Shortner.Api
 
             app.UseEndpoints(endpoints => {
                 endpoints.MapHealthChecks("/hc", new HealthCheckOptions {
-                    Predicate = check => ! check.Tags.Contains("ready")
+                    Predicate = check => !check.Tags.Contains("ready"),
+                    ResponseWriter = this.ResponseWriter
                 });
                 endpoints.MapHealthChecks("/rd", new HealthCheckOptions {
-                    Predicate = check => check.Tags.Contains("ready")
+                    Predicate = check => check.Tags.Contains("ready"),
+                    ResponseWriter = this.ResponseWriter
+
                 });
                 endpoints.MapGet("/{token}", async context => {
                     var token = context.Request.RouteValues["token"];
@@ -71,6 +77,24 @@ namespace Shortner.Api
                 });
                 endpoints.MapDefaultControllerRoute();
             });
+        }
+
+        private Task ResponseWriter(HttpContext context,HealthReport report)
+        {
+            context.Response.ContentType = MediaTypeNames.Application.Json;
+            var healthCheck = new HealthCheck {
+                Name = "ShortnerAPI",
+                Duration = report.TotalDuration,
+                Status = report.Status.ToString()
+            };
+            healthCheck.Info = report.Entries.Select(p => new HealthInfo {
+                Key = p.Key,
+                Description = p.Value.Description,
+                Duration = p.Value.Duration,
+                Status = p.Value.Status.ToString(),
+                Error = p.Value.Exception.ToString()
+            }).ToList();
+            return context.Response.WriteAsync(JsonSerializer.Serialize(healthCheck));
         }
     }
 }
